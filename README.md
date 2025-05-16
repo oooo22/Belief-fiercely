@@ -1,7 +1,7 @@
 <html lang="th">
 <head>
   <meta charset="utf-8">
-  <title>Feedback Loop Demo</title>
+  <title>Loop</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Kanit&display=swap" rel="stylesheet">
   <style>
@@ -82,12 +82,13 @@
     let audioCtx;
     let micStream;
     let micSource;
-    let delayNode;
-    let feedbackGain;
     let recorder;
     let recordedChunks = [];
     let loopSource;
     let loopInterval;
+
+    let delayNodes = [];
+    let feedbackGains = [];
 
     const startBtn = document.getElementById('startBtn');
     const stopBtn = document.getElementById('stopBtn');
@@ -96,22 +97,39 @@
       if (!audioCtx) {
         audioCtx = new AudioContext();
 
-        delayNode = audioCtx.createDelay(5.0); // เพิ่มระยะสะท้อน
-        delayNode.delayTime.value = 2.5;       // เริ่มด้วยความล่าช้า 2.5s
+        // สร้าง delay หลายตัวเรียงกัน
+        const delayTimes = [0.2, 0.4, 0.6];
+        delayNodes = [];
+        feedbackGains = [];
 
-        feedbackGain = audioCtx.createGain();
-        feedbackGain.gain.value = 0.5;         // เริ่มก้องสูงขึ้น
+        let previousNode = null;
 
-        delayNode.connect(feedbackGain);
-        feedbackGain.connect(delayNode);
-        delayNode.connect(audioCtx.destination);
+        delayTimes.forEach((t, i) => {
+          const delay = audioCtx.createDelay(5.0);
+          delay.delayTime.value = t;
 
+          const feedback = audioCtx.createGain();
+          feedback.gain.value = 0.6 + i * 0.1;
+
+          delay.connect(feedback);
+          feedback.connect(delay);
+
+          delayNodes.push(delay);
+          feedbackGains.push(feedback);
+
+          if (previousNode) previousNode.connect(delay);
+          previousNode = delay;
+        });
+
+        // ต่อจาก delay สุดท้ายออกลำโพง
+        delayNodes[delayNodes.length - 1].connect(audioCtx.destination);
+
+        // เพิ่ม feedback เรื่อยๆ
         loopInterval = setInterval(() => {
-          if (feedbackGain.gain.value < 1.5) {
-            feedbackGain.gain.value += 0.05;
-            console.log("เพิ่มความก้อง:", feedbackGain.gain.value.toFixed(2));
-          }
-        }, 4000);
+          feedbackGains.forEach(gain => {
+            if (gain.gain.value < 1.5) gain.gain.value += 0.02;
+          });
+        }, 3000);
       }
     }
 
@@ -125,7 +143,8 @@
       const loopGain = audioCtx.createGain();
       loopGain.gain.value = 1.0;
 
-      loopSource.connect(delayNode);
+      // เชื่อมต่อกับ delay node แรก
+      loopSource.connect(delayNodes[0]);
       loopSource.connect(loopGain).connect(audioCtx.destination);
       loopSource.start(0);
     }
