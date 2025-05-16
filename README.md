@@ -1,7 +1,7 @@
 <html lang="th">
 <head>
   <meta charset="utf-8">
-  <title>Loop🎧</title>
+  <title>Feedback Loop Demo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Kanit&display=swap" rel="stylesheet">
   <style>
@@ -16,21 +16,25 @@
       min-height: 100vh;
       margin: 0;
     }
+
     h2 {
       font-size: 28px;
       color: #6a4fb3;
       margin-bottom: 10px;
     }
+
     p {
       font-size: 18px;
       color: #8e7cc3;
       margin-bottom: 30px;
     }
+
     .button-group {
       display: flex;
       gap: 20px;
       flex-wrap: wrap;
     }
+
     button {
       font-size: 18px;
       padding: 12px 24px;
@@ -42,13 +46,16 @@
       cursor: pointer;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
+
     button:hover {
       background: linear-gradient(145deg, #ead0ff, #fff0b2);
       transform: scale(1.05);
     }
+
     button:active {
       transform: scale(0.97);
     }
+
     @media (max-width: 500px) {
       button {
         width: 100%;
@@ -64,7 +71,8 @@
 </head>
 <body>
   <h2>LOOP 🎧</h2>
-  <p>กดค้างเพื่อพูด </p>
+  <p>กดค้างเพื่อพูด</p>
+
   <div class="button-group">
     <button id="startBtn">🎤 START</button>
     <button id="stopBtn">🛑 STOP</button>
@@ -88,24 +96,22 @@
       if (!audioCtx) {
         audioCtx = new AudioContext();
 
-        delayNode = audioCtx.createDelay(10.0);
-        delayNode.delayTime.value = 3.5;
+        delayNode = audioCtx.createDelay(5.0); // เพิ่มระยะสะท้อน
+        delayNode.delayTime.value = 2.5;       // เริ่มด้วยความล่าช้า 2.5s
 
         feedbackGain = audioCtx.createGain();
-        feedbackGain.gain.value = 0.6;
+        feedbackGain.gain.value = 0.5;         // เริ่มก้องสูงขึ้น
 
         delayNode.connect(feedbackGain);
         feedbackGain.connect(delayNode);
         delayNode.connect(audioCtx.destination);
 
         loopInterval = setInterval(() => {
-          if (feedbackGain.gain.value < 2.0) {
-            feedbackGain.gain.value += 0.08;
-            delayNode.delayTime.value -= 0.05;
-            if (delayNode.delayTime.value < 1.0) delayNode.delayTime.value = 1.0;
-            console.log("เพิ่มก้อง:", feedbackGain.gain.value.toFixed(2), "Delay:", delayNode.delayTime.value.toFixed(2));
+          if (feedbackGain.gain.value < 1.5) {
+            feedbackGain.gain.value += 0.05;
+            console.log("เพิ่มความก้อง:", feedbackGain.gain.value.toFixed(2));
           }
-        }, 2500);
+        }, 4000);
       }
     }
 
