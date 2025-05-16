@@ -75,10 +75,10 @@
 
   <div class="button-group">
     <button id="startBtn">🎤 START</button>
-    <button id="stopBtn">🛑 STOP</button>
+    <button id="stopBtn">🚩 STOP</button>
   </div>
 
- <script>
+  <script>
     let audioCtx;
     let micStream;
     let micSource;
@@ -86,6 +86,7 @@
     let recordedChunks = [];
     let loopSource;
     let loopInterval;
+    let speedInterval;
 
     let delayNodes = [];
     let feedbackGains = [];
@@ -97,7 +98,7 @@
       if (!audioCtx) {
         audioCtx = new AudioContext();
 
-        const delayTimes = [0.8, 1.2]; // ลดการซ้อน & ชะลอ
+        const delayTimes = [0.8, 1.2];
         delayNodes = [];
         feedbackGains = [];
 
@@ -145,6 +146,14 @@
       loopSource.connect(delayNodes[0]);
       loopSource.connect(loopGain).connect(audioCtx.destination);
       loopSource.start(0);
+
+      let currentPlaybackRate = 1.0;
+      speedInterval = setInterval(() => {
+        if (loopSource.playbackRate.value < 2.0) {
+          currentPlaybackRate += 0.01;
+          loopSource.playbackRate.setValueAtTime(currentPlaybackRate, audioCtx.currentTime);
+        }
+      }, 6000);
     }
 
     startBtn.addEventListener('pointerdown', async () => {
@@ -209,13 +218,14 @@
       }
 
       if (loopInterval) clearInterval(loopInterval);
+      if (speedInterval) clearInterval(speedInterval);
 
       if (audioCtx) {
         audioCtx.close();
         audioCtx = null;
       }
 
-      console.log("🛑 หยุดเสียงทั้งหมด");
+      console.log("🚩 หยุดเสียงทั้งหมด");
     };
   </script>
 </body>
