@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="utf-8">
@@ -97,8 +98,7 @@
       if (!audioCtx) {
         audioCtx = new AudioContext();
 
-        // สร้าง delay หลายตัวเรียงกัน
-        const delayTimes = [0.2, 0.4, 0.6];
+        const delayTimes = [0.8, 1.2]; // ลดการซ้อน & ชะลอ
         delayNodes = [];
         feedbackGains = [];
 
@@ -109,7 +109,7 @@
           delay.delayTime.value = t;
 
           const feedback = audioCtx.createGain();
-          feedback.gain.value = 0.6 + i * 0.1;
+          feedback.gain.value = 0.35 + i * 0.05;
 
           delay.connect(feedback);
           feedback.connect(delay);
@@ -121,15 +121,15 @@
           previousNode = delay;
         });
 
-        // ต่อจาก delay สุดท้ายออกลำโพง
         delayNodes[delayNodes.length - 1].connect(audioCtx.destination);
 
-        // เพิ่ม feedback เรื่อยๆ
         loopInterval = setInterval(() => {
           feedbackGains.forEach(gain => {
-            if (gain.gain.value < 1.5) gain.gain.value += 0.02;
+            if (gain.gain.value < 0.6) {
+              gain.gain.value += 0.01;
+            }
           });
-        }, 3000);
+        }, 5000);
       }
     }
 
@@ -143,7 +143,6 @@
       const loopGain = audioCtx.createGain();
       loopGain.gain.value = 1.0;
 
-      // เชื่อมต่อกับ delay node แรก
       loopSource.connect(delayNodes[0]);
       loopSource.connect(loopGain).connect(audioCtx.destination);
       loopSource.start(0);
